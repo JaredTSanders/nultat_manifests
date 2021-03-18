@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment                 # Type of Kubernetes resource
+metadata:
+  name: nultat-api             # Unique name of the Kubernetes resource
+spec:
+  replicas: 1                    # Number of pods to run at any given time
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: nultat-api          # This deployment applies to any Pods matching the specified label
+  template:                      # This deployment will create a set of pods using the configurations in this template
+    metadata:
+      labels:                    # The labels that will be applied to all of the pods in this deployment
+        app: nultat-api
+    spec:
+      containers:
+      - name: nultat-backend
+        image: kronos23/nultat-backend:v1.3.9
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        ports:
+          - containerPort: 8000  # Should match the port number that the Go application listens on
+---
+apiVersion: v1
+kind: Service                    # Type of kubernetes resource
+metadata:
+  name: nultat-api-svc     # Unique name of the resource
+spec:
+  type: ClusterIP           # Expose the Pods by opening a port on each Node and proxying it to the service.
+  ports:                         # Take incoming HTTP requests on port 9090 and forward them to the targetPort of 8080
+  - name: http
+    port: 8000
+    targetPort: 8000
+  selector:
+    app: nultat-api            # Map any pod with label `app=go-redis-app` to this service
